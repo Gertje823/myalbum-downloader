@@ -73,11 +73,11 @@ def download_image(inputurl):
     print("  ⏳ Downloading images...")
     for image in images:
         print(f"    ⏳ Downloading image {image.id}...")
-        exifResponse = requests.get(f"https://myalbum.com/api/v2/album/tZqckzSnbv4Crj/asset/{image.key}/exif")
+        exifResponse = requests.get(f"https://myalbum.com/api/v2/album/{album_id}/asset/{image.key}/exif")
         exifResponse.raise_for_status()
-        exifJson = json.loads(exifResponse.content)
-
-        fileName = exifJson["fileName"]
+        exifJson: dict = json.loads(exifResponse.content)
+        
+        fileName = exifJson.get("fileName",image.id+".jpg")
 
         imageResponse = requests.get(image.url)
         imageResponse.raise_for_status()
@@ -86,15 +86,29 @@ def download_image(inputurl):
         file.close()
 
         exif = Image(f"{dirName}/{fileName}")
-        exif.model = exifJson['cameraModel']
-        exif.maker = exifJson['cameraBrand']
-        exif.software = exifJson['software']
-        exif.exposure_time = exifJson['shutterSpeed']
-        exif.focal_length = exifJson['focalLength']
-        exif.aperture_value = exifJson['aperture']
-        exif.iso_speed = exifJson['iso']
-        # exif.image_height = exifJson['height']
-        # exif.image_width = exifJson['width']
+        # set exif variables if they exist
+        
+        if 'cameraModel' in exifJson:
+            exif.model = exifJson['cameraModel']
+        
+        if 'cameraBrand' in exifJson:
+            exif.maker = exifJson['cameraBrand']
+
+        if 'software' in exifJson:
+            exif.software = exifJson['software']
+
+        if 'shutterSpeed' in exifJson:
+            exif.exposure_time = exifJson['shutterSpeed']    
+
+        if 'focalLength' in exifJson:
+            exif.focal_length = exifJson['focalLength']
+        
+        if 'aperture' in exifJson:	
+            exif.aperture_value = exifJson['aperture']
+        
+        if 'iso' in exifJson:
+            exif.iso_speed = exifJson['iso']
+        
         exif.image_unique_id = image.id
         exif.image_description = albumTitle
         exif.datetime_original = parse(exifJson['dateTaken']).strftime(DATETIME_STR_FORMAT)
