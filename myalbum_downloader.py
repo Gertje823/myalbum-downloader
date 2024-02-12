@@ -6,7 +6,7 @@ from datetime import datetime
 from dateutil.parser import parse
 
 def download_image(inputurl):
-    album_id = re.search("\/album\/(.+[^\/])", inputurl).group(1)
+    album_id = re.search("\/album\/([a-z0-9]*)", inputurl, re.I).group(1)
     r = requests.get(f"https://myalbum.com/api/v2/album/{album_id}/")
     rootJson = r.json()
     albumTitle = rootJson["title"]
